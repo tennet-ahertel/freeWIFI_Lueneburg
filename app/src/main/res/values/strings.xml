@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">freeWIFI_Lueneburg</string>
+    <string name="app_name_utf8">freeWIFI_Lüneburg</string>
+    <string name="action_settings">Settings</string>
+</resources>
