@@ -31,4 +31,16 @@
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@android:drawable/ic_dialog_email" />
 
+    <de.teutronic.freewifi_lueneburg.DirectionView
+        android:id="@+id/direction"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="@dimen/fab_margin"
+        android:visibility="visible"
+        app:srcCompat="@android:drawable/ic_dialog_info"
+        tools:layout_editor_absoluteY="511dp" />
+
+
+
 </android.support.design.widget.CoordinatorLayout>

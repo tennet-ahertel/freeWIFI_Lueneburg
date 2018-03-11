@@ -1,4 +1,4 @@
-package de.androidnewcomer.weginsbuero;
+package de.teutronic.freewifi_lueneburg;
 
 import android.app.Service;
 import android.content.Intent;
