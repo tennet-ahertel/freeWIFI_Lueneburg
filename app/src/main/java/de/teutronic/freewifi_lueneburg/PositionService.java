@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by Andreas on 06.03.18.
  */
-public class PositionService extends Service implements LocationListener{
+public class PositionService extends Service implements LocationListener {
 
     private LocationManager locationManager;
     public static List<Location> weg = new ArrayList<Location>();
@@ -30,7 +30,9 @@ public class PositionService extends Service implements LocationListener{
     public void onCreate() {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
+        //checkPermission
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,this);
+//        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
         weg.clear();
     }
 
