@@ -2,12 +2,16 @@ package de.teutronic.freewifi_lueneburg;
 
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.overlay.Polyline;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +25,8 @@ public class PositionService extends Service implements LocationListener {
     public static List<Location> weg = new ArrayList<Location>();
     public static Handler updateHandler;
 
+    public static MainActivity mainActivity = null;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -31,8 +37,8 @@ public class PositionService extends Service implements LocationListener {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         //checkPermission
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,this);
-//        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,1000,2,this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,    1000,2,this);
         weg.clear();
     }
 
@@ -45,6 +51,8 @@ public class PositionService extends Service implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         weg.add(location);
+        if (mainActivity != null)
+            mainActivity.setActGeoPt(location);
         if(updateHandler!=null) {
             updateHandler.sendEmptyMessage(1);
         }
