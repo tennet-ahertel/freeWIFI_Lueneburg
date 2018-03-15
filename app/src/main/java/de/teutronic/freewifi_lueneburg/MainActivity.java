@@ -42,6 +42,7 @@ import java.util.List;
 import de.teutronic.freewifi_lueneburg.DB.FreeWIFI_DBhelper;
 
 
+
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private MapView mapView;
     private MyLocationNewOverlay myLocationOverlay;
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Canvas canvas;
     private PositionHandler positionHandler = new PositionHandler();
     private boolean magnetometer_availiable = true;
+    private boolean showway = false;
 
 
     @Override
@@ -149,7 +151,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (id == R.id.action_settings) {
             return true;
         }
-
+        if (id == R.id.action_center) {
+            mapView.getController().setZoom(19);
+            mapView.getController().setCenter(actGeoPt);
+            myLocationOverlay.enableMyLocation();
+            myLocationOverlay.enableFollowLocation();
+            return true;
+        }
+        if (id == R.id.action_showway) {
+            if (showway) {
+                showway = false ;
+                item.setTitle(R.string.action_showway);
+            } else {
+                showway = true;
+                item.setTitle(R.string.action_showway_alt);
+            }
+            zeigePosition();
+            mapView.invalidate();
+            return true;
+        }
+        if (id == R.id.action_delway) {
+            PositionService.deleteWeg();
+            if (showway) {
+                zeigePosition();
+                mapView.invalidate();
+            }
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -240,29 +268,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void zeigePosition() {
         List<Location> weg = PositionService.weg;
-        if(!weg.isEmpty()) {
-            mapView.getOverlayManager().clear();
-            //Log.d("freeWIFI","weg.size()="+Integer.toString(weg.size()));
-            if(weg.size()>1) {
-                List<GeoPoint> geoPoints = new ArrayList<>();
-                Polyline line = new Polyline();
-                line.setColor(Color.GREEN);
-                for(int i=0; i<weg.size(); i++) {
-                    geoPoints.add(new GeoPoint(weg.get(i)));
-                }
-                line.setPoints(geoPoints);
-                mapView.getOverlayManager().add(line);
-            }
+        mapView.getOverlayManager().clear();
+
+        if ( showway  && !weg.isEmpty() && (weg.size()>1) ) {
             List<GeoPoint> geoPoints = new ArrayList<>();
-            Polyline line2AP = new Polyline();
-            line2AP.setColor(Color.RED);
-            geoPoints.add(actGeoPt.clone());
-            geoPoints.add(nextAPGeoPt.clone());
-            line2AP.setPoints(geoPoints);
-            mapView.getOverlayManager().add(line2AP);
-            mapView.getOverlays().add(myLocationOverlay);
-        } else {
-            Log.d("freeWIFI","weg.isEmpty()");
+            Polyline line = new Polyline();
+            line.setColor(Color.GREEN);
+            for(int i=0; i<weg.size(); i++) {
+                geoPoints.add(new GeoPoint(weg.get(i)));
+            }
+            line.setPoints(geoPoints);
+            mapView.getOverlayManager().add(line);
         }
+
+        List<GeoPoint> geoPoints = new ArrayList<>();
+        Polyline line2AP = new Polyline();
+        line2AP.setColor(Color.RED);
+        geoPoints.add(actGeoPt.clone());
+        geoPoints.add(nextAPGeoPt.clone());
+        line2AP.setPoints(geoPoints);
+        mapView.getOverlayManager().add(line2AP);
+        mapView.getOverlays().add(myLocationOverlay);
     }
 }

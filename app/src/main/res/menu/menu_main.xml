@@ -7,4 +7,19 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_center"
+        android:orderInCategory="100"
+        android:title="@string/action_center"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_showway"
+        android:orderInCategory="100"
+        android:title="@string/action_showway"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_delway"
+        android:orderInCategory="100"
+        android:title="@string/action_delway"
+        app:showAsAction="never" />
 </menu>

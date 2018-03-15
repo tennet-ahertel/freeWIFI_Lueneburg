@@ -2,4 +2,8 @@
     <string name="app_name">freeWIFI_Lueneburg</string>
     <string name="app_name_utf8">freeWIFI_Lüneburg</string>
     <string name="action_settings">Settings</string>
+    <string name="action_center">Karte zu mir</string>
+    <string name="action_showway">Zeige meinen Weg</string>
+    <string name="action_showway_alt">Weg ausblenden</string>
+    <string name="action_delway">lösche Weg</string>
 </resources>

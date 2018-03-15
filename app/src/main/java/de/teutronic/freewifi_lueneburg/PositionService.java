@@ -45,6 +45,7 @@ public class PositionService extends Service implements LocationListener {
     @Override
     public void onDestroy() {
         locationManager.removeUpdates(this);
+        weg.clear();
         super.onDestroy();
     }
 
@@ -72,4 +73,9 @@ public class PositionService extends Service implements LocationListener {
     public void onProviderDisabled(String s) {
 
     }
+
+    public static void deleteWeg() {
+        weg.clear();
+    }
+
 }
