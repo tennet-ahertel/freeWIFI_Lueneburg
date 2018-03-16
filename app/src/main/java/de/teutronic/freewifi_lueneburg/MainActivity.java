@@ -39,8 +39,9 @@ import org.osmdroid.util.GeoPoint;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.teutronic.freewifi_lueneburg.DB.FreeWIFI_DBResolver;
 import de.teutronic.freewifi_lueneburg.DB.FreeWIFI_DBhelper;
-
+import de.teutronic.freewifi_lueneburg.DB.FreeWIFI_DBobj;
 
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private PositionHandler positionHandler = new PositionHandler();
     private boolean magnetometer_availiable = true;
     private boolean showway = false;
+    private List<FreeWIFI_DBobj> freeWIFIList;
 
 
     @Override
@@ -96,6 +98,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         /*SQL Datenbank*/
         freeWIFI_DBhelper = new FreeWIFI_DBhelper (this);
+
+        FreeWIFI_DBResolver resolver = new FreeWIFI_DBResolver(freeWIFI_DBhelper.getWritableDatabase());
+        FreeWIFI_DBobj freeWIFI_DBobj = new FreeWIFI_DBobj();
+        freeWIFI_DBobj.setSsid("First");
+      //  freeWIFI_DBobj.setCreationDate("02.03.2018");
+      //  resolver.insertNewStuff(freeWIFI_DBobj);
+        freeWIFIList = resolver.getFreeWIFIList();
+        for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
+            Log.v("DB:", "ssid="+freeWIFI_DBobj2.getSsid()+" Lon="+freeWIFI_DBobj2.getLogitude()+" Lat="+freeWIFI_DBobj2.getLatitude()+" praise="+freeWIFI_DBobj2.getPraise());
+        }
+
 
         /*Sensoren*/
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -253,9 +266,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public void setActGeoPt (Location location) {
         actGeoPt = new GeoPoint(location);
+        float distact,distlow=1000000;
         Log.d("freeWIFI","actGeoPt (lat/lon):"+Double.toString(actGeoPt.getLatitude())+"/"+Double.toString(actGeoPt.getLongitude()));
         //wo ist der naechstgelegene AP ?
-        //nextAPGeoPt = ?
+        for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
+            GeoPoint apGeoPt = new GeoPoint(Float.parseFloat(freeWIFI_DBobj2.getLatitude()),Float.parseFloat(freeWIFI_DBobj2.getLogitude()));
+            distact = (float) actGeoPt.distanceTo(apGeoPt);
+            if (distact <distlow) {
+                distlow=distact;
+                nextAPGeoPt = apGeoPt;
+            }
+        }
         Log.d("freeWIFI","nextAPGeoPt (lat/lon):"+Double.toString(nextAPGeoPt.getLatitude())+"/"+Double.toString(nextAPGeoPt.getLongitude()));
     }
 
