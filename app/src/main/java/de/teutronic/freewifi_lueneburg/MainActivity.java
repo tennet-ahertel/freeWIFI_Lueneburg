@@ -3,6 +3,7 @@ package de.teutronic.freewifi_lueneburg;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,6 +31,9 @@ import android.widget.Toast;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.ItemizedIconOverlay;
+import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
+import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.PathOverlay;
 import org.osmdroid.views.overlay.Polyline;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
@@ -51,6 +55,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private FreeWIFI_DBhelper freeWIFI_DBhelper;
     private volatile GeoPoint actGeoPt = new GeoPoint(53.24774,10.41125);
     private volatile GeoPoint nextAPGeoPt = new GeoPoint(53.247135,10.409009);
+    private volatile GeoPoint nextAPGeoPt2=null;
+    private volatile GeoPoint nextAPGeoPt3=null;
     private Sensor sensor_accelerometer;
     private Sensor sensor_magnetometer;
     private float[] mGravity;
@@ -65,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private boolean magnetometer_availiable = true;
     private boolean showway = false;
     private List<FreeWIFI_DBobj> freeWIFIList;
+    private ItemizedOverlayWithFocus<OverlayItem> fflgOverlay;
 
 
     @Override
@@ -85,29 +92,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
 
-        /*OSM*/
-        mapView = findViewById(R.id.map);
-        mapView.setTileSource(TileSourceFactory.MAPNIK);
-        mapView.setBuiltInZoomControls(true);
-        mapView.setMultiTouchControls(true);
-        mapView.getController().setZoom(19);
-        mapView.getController().setCenter(actGeoPt);
-        myLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(this), mapView);
-        myLocationOverlay.enableMyLocation();
-        myLocationOverlay.enableFollowLocation();
-
-        /*SQL Datenbank*/
-        freeWIFI_DBhelper = new FreeWIFI_DBhelper (this);
-
-        FreeWIFI_DBResolver resolver = new FreeWIFI_DBResolver(freeWIFI_DBhelper.getWritableDatabase());
-        FreeWIFI_DBobj freeWIFI_DBobj = new FreeWIFI_DBobj();
-        freeWIFI_DBobj.setSsid("First");
-      //  freeWIFI_DBobj.setCreationDate("02.03.2018");
-      //  resolver.insertNewStuff(freeWIFI_DBobj);
-        freeWIFIList = resolver.getFreeWIFIList();
-        for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
-            Log.v("DB:", "ssid="+freeWIFI_DBobj2.getSsid()+" Lon="+freeWIFI_DBobj2.getLogitude()+" Lat="+freeWIFI_DBobj2.getLatitude()+" praise="+freeWIFI_DBobj2.getPraise());
-        }
 
 
         /*Sensoren*/
@@ -144,6 +128,59 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         startService(new Intent(this, PositionService.class));
         PositionService.updateHandler = positionHandler;
         PositionService.mainActivity = this;
+
+
+        /*SQL Datenbank*/
+        freeWIFI_DBhelper = new FreeWIFI_DBhelper (this);
+
+        FreeWIFI_DBResolver resolver = new FreeWIFI_DBResolver(freeWIFI_DBhelper.getWritableDatabase());
+        FreeWIFI_DBobj freeWIFI_DBobj = new FreeWIFI_DBobj();
+        freeWIFI_DBobj.setSsid("First");
+        //  freeWIFI_DBobj.setCreationDate("02.03.2018");
+        //  resolver.insertNewStuff(freeWIFI_DBobj);
+        freeWIFIList = resolver.getFreeWIFIList();
+        for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
+            Log.v("DB:", "ssid="+freeWIFI_DBobj2.getSsid()+" Lon="+freeWIFI_DBobj2.getLogitude()+" Lat="+freeWIFI_DBobj2.getLatitude()+" praise="+freeWIFI_DBobj2.getPraise());
+        }
+
+
+
+        /*OSM*/
+        mapView = findViewById(R.id.map);
+        mapView.setTileSource(TileSourceFactory.MAPNIK);
+        mapView.setBuiltInZoomControls(true);
+        mapView.setMultiTouchControls(true);
+        mapView.getController().setZoom(19);
+        mapView.getController().setCenter(actGeoPt);
+        myLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(this), mapView);
+        myLocationOverlay.enableMyLocation();
+        myLocationOverlay.enableFollowLocation();
+
+
+        //aus Datenbank-Liste OSM items erzeugen
+        ArrayList<OverlayItem> fflgitems = new ArrayList<OverlayItem>();
+        Drawable fflgMarker = this.getResources().getDrawable(R.drawable.freifunk);
+        for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
+            GeoPoint apGeoPt = new GeoPoint(Float.parseFloat(freeWIFI_DBobj2.getLatitude()),Float.parseFloat(freeWIFI_DBobj2.getLogitude()));
+            OverlayItem olItem = new OverlayItem("Title", "Description", apGeoPt);
+            olItem.setMarker(fflgMarker);
+            fflgitems.add(olItem);
+        }
+        //the overlay
+        fflgOverlay = new ItemizedOverlayWithFocus<OverlayItem>(this,fflgitems,
+                new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+                    @Override
+                    public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+                        Log.i("Touch","you just tap the hotspot");
+                        return true;
+                    }
+                    @Override
+                    public boolean onItemLongPress(final int index, final OverlayItem item) {
+                        return false;
+                    }
+                });
+        fflgOverlay.setFocusItemsOnTap(true);
+        mapView.getOverlays().add(fflgOverlay);
     }
 
     @Override
@@ -253,22 +290,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float getAngleToAP(){
         float angle = (float) actGeoPt.bearingTo(nextAPGeoPt);
         if (angle > 180) angle = -(360 -angle);
-        Log.d("freeWIFI","angle (actGeoPt/nextAPGeoPt):"+Float.toString(angle));
+        //Log.d("freeWIFI","angle (actGeoPt/nextAPGeoPt):"+Float.toString(angle));
         //Log.d("freeWIFI","handyAzimut:"+Float.toString(handyAzimut));
         return handyAzimut + angle;
     }
     private float getDistanceToAP(){
         float dist = (float) actGeoPt.distanceTo(nextAPGeoPt);
-        Log.d("freeWIFI","distance (actGeoPt/nextAPGeoPt):"+Float.toString(dist));
+        //Log.d("freeWIFI","distance (actGeoPt/nextAPGeoPt):"+Float.toString(dist));
         //Log.d("freeWIFI","handyAzimut:"+Float.toString(handyAzimut));
         return dist;
     }
 
     public void setActGeoPt (Location location) {
         actGeoPt = new GeoPoint(location);
-        float distact,distlow=1000000;
+        float distact,distlow=1000000,distlow2=1000001,distlow3=1000002;;;
         Log.d("freeWIFI","actGeoPt (lat/lon):"+Double.toString(actGeoPt.getLatitude())+"/"+Double.toString(actGeoPt.getLongitude()));
-        //wo ist der naechstgelegene AP ?
+        //wo sind die drei naechstgelegenen AP ?
         for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
             GeoPoint apGeoPt = new GeoPoint(Float.parseFloat(freeWIFI_DBobj2.getLatitude()),Float.parseFloat(freeWIFI_DBobj2.getLogitude()));
             distact = (float) actGeoPt.distanceTo(apGeoPt);
@@ -277,7 +314,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 nextAPGeoPt = apGeoPt;
             }
         }
-        Log.d("freeWIFI","nextAPGeoPt (lat/lon):"+Double.toString(nextAPGeoPt.getLatitude())+"/"+Double.toString(nextAPGeoPt.getLongitude()));
+        Log.d("freeWIFI","nextAPGeoPt (meter):"+Float.toString(distlow));
+        for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
+            GeoPoint apGeoPt = new GeoPoint(Float.parseFloat(freeWIFI_DBobj2.getLatitude()),Float.parseFloat(freeWIFI_DBobj2.getLogitude()));
+            distact = (float) actGeoPt.distanceTo(apGeoPt);
+            if ((distact >distlow) &&  (distact <distlow2)){
+                distlow2=distact;
+                nextAPGeoPt2 = apGeoPt;
+            }
+        }
+        Log.d("freeWIFI","nextAPGeoPt2 (meter):"+Float.toString(distlow2));
+        for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
+            GeoPoint apGeoPt = new GeoPoint(Float.parseFloat(freeWIFI_DBobj2.getLatitude()),Float.parseFloat(freeWIFI_DBobj2.getLogitude()));
+            distact = (float) actGeoPt.distanceTo(apGeoPt);
+            if ((distact >distlow2) &&  (distact <distlow3)){
+                distlow3=distact;
+                nextAPGeoPt3 = apGeoPt;
+            }
+        }
+        Log.d("freeWIFI","nextAPGeoPt3 (meter):"+Float.toString(distlow3));
     }
 
     private class PositionHandler extends Handler {
@@ -294,7 +349,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if ( showway  && !weg.isEmpty() && (weg.size()>1) ) {
             List<GeoPoint> geoPoints = new ArrayList<>();
             Polyline line = new Polyline();
-            line.setColor(Color.GREEN);
+            line.setColor(Color.LTGRAY);
             for(int i=0; i<weg.size(); i++) {
                 geoPoints.add(new GeoPoint(weg.get(i)));
             }
@@ -302,13 +357,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mapView.getOverlayManager().add(line);
         }
 
+        if (nextAPGeoPt3 != null) {
+            List<GeoPoint> geoPoints3 = new ArrayList<>();
+            Polyline line2AP3 = new Polyline();
+            line2AP3.setColor(Color.WHITE);
+            geoPoints3.add(actGeoPt.clone());
+            geoPoints3.add(nextAPGeoPt3.clone());
+            line2AP3.setPoints(geoPoints3);
+            mapView.getOverlayManager().add(line2AP3);
+        }
+        if (nextAPGeoPt2 != null) {
+            List<GeoPoint> geoPoints2 = new ArrayList<>();
+            Polyline line2AP2 = new Polyline();
+            line2AP2.setColor(Color.YELLOW);
+            geoPoints2.add(actGeoPt.clone());
+            geoPoints2.add(nextAPGeoPt2.clone());
+            line2AP2.setPoints(geoPoints2);
+            mapView.getOverlayManager().add(line2AP2);
+        }
         List<GeoPoint> geoPoints = new ArrayList<>();
         Polyline line2AP = new Polyline();
-        line2AP.setColor(Color.RED);
+        line2AP.setColor(Color.GREEN);
         geoPoints.add(actGeoPt.clone());
         geoPoints.add(nextAPGeoPt.clone());
         line2AP.setPoints(geoPoints);
         mapView.getOverlayManager().add(line2AP);
+
         mapView.getOverlays().add(myLocationOverlay);
+        mapView.getOverlays().add(fflgOverlay);
     }
 }

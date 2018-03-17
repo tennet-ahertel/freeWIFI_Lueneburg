@@ -6,36 +6,4 @@
     <string name="action_showway">Zeige meinen Weg</string>
     <string name="action_showway_alt">Weg ausblenden</string>
     <string name="action_delway">lösche Weg</string>
-
-
-    <string name="sql_initial_create">
-BEGIN TRANSACTION;
-
-CREATE TABLE "GPS_Tbl" (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    ssid        TEXT NOT NULL DEFAULT 'lueneburg.freifunk.net',
-    latitude    TEXT NOT NULL DEFAULT '',
-    logitude    TEXT NOT NULL DEFAULT '',
-    lastupdate  DATETIME NOT NULL DEFAULT '946728000',
-    praise      TEXT NOT NULL DEFAULT '',
-    link        TEXT
-)
-
-INSERT INTO "GPS_Tbl" 1,,'53.247135','10.409009',,'leuphana';
-INSERT INTO "GPS_Tbl" 2,,'53.247467','10.41233' ,,'Ev.Familien-Bildungsstätte';
-INSERT INTO "GPS_Tbl" 3,,'53.25029' ,'10.3991'  ,,'Landkreis-Geb.5';
-INSERT INTO "GPS_Tbl" 4,,'53.30757' ,'10.28674' ,,'Gemeinde-Radbruch';
-INSERT INTO "GPS_Tbl" 6,,'53.1722'  ,'10.8164'  ,,'Gemeinde-Nahrendorf';
-INSERT INTO "GPS_Tbl" 7,,'53.22515' ,'10.53676' ,,'Gemeinde-Barendorf';
-
-
-CREATE TABLE "System_Configuration" (
-    "Setting" VARCHAR(255)  UNIQUE NOT NULL,
-    "Value" VARCHAR(255)  NOT NULL
-);
-
-INSERT INTO "System_Configuration" ("DatabaseRevision") VALUE "1";
-
-COMMIT;
-</string>
 </resources>
