@@ -43,6 +43,11 @@ public class FreeWIFI_DBResolver {
                 freeWIFI_DBobj.setPraise(cursor.getString(cursor.getColumnIndex(FreeWIFI_DBobj.GPS_PRAISE)));
                 freeWIFI_DBobj.setLink(cursor.getString(cursor.getColumnIndex(FreeWIFI_DBobj.GPS_LINK)));
                 freeWIFI_DBobj.setLastupdate(cursor.getLong(cursor.getColumnIndex(FreeWIFI_DBobj.GPS_LASTUPDATE)));
+                if (cursor.getInt(cursor.getColumnIndex(FreeWIFI_DBobj.GPS_OFFLINE)) == 1) {
+                    freeWIFI_DBobj.setOffline(true);
+                } else {
+                    freeWIFI_DBobj.setOffline(false);
+                }
                 freeWIFI_DBobjList.add(freeWIFI_DBobj);
             }
             return freeWIFI_DBobjList;

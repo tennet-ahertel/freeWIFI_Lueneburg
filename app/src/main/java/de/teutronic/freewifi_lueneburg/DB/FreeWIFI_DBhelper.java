@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.List;
+
 import static de.teutronic.freewifi_lueneburg.DB.FreeWIFI_DBobj.CURRENT_VERSION;
 
 /**
@@ -22,14 +24,13 @@ public class FreeWIFI_DBhelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String[] sql_cmds = freeWIFI_DBobj.createTable();
-        for (int i = 0; i < sql_cmds.length ; i++) {
-            if ((sql_cmds[i]) == null) break;
+        List<String> sql_cmds = freeWIFI_DBobj.createTable();
+        for (String sql_cmd :sql_cmds) {
             try {
-                db.execSQL(sql_cmds[i]);
+                db.execSQL(sql_cmd);
             } catch (Exception exp){
                 Log.e("freeWIFI", exp.getLocalizedMessage());
-                Log.e("freeWIFI", "sql:"+sql_cmds[i]);
+                Log.e("freeWIFI", "sql:"+sql_cmd);
             }
         }
     }
@@ -39,14 +40,13 @@ public class FreeWIFI_DBhelper extends SQLiteOpenHelper {
         Log.e("freeWIFI", "DB Upgrade:"+Integer.toString(oldVersion)+" -> " +Integer.toString(newVersion));
         db.execSQL("Drop table if exists "+freeWIFI_DBobj.GPS_TABLE_NAME);
         db.execSQL("Drop table if exists "+freeWIFI_DBobj.SYSTEMCONFIG_TABLE_NAME);
-        String[] sql_cmds = freeWIFI_DBobj.createTable();
-        for (int i = 0; i < sql_cmds.length ; i++) {
-            if ((sql_cmds[i]) == null) break;
+        List<String> sql_cmds = freeWIFI_DBobj.createTable();
+        for (String sql_cmd :sql_cmds) {
             try {
-                db.execSQL(sql_cmds[i]);
+                db.execSQL(sql_cmd);
             } catch (Exception exp){
                 Log.e("freeWIFI", exp.getLocalizedMessage());
-                Log.e("freeWIFI", "sql:"+sql_cmds[i]);
+                Log.e("freeWIFI", "sql:"+sql_cmd);
             }
         }
     }

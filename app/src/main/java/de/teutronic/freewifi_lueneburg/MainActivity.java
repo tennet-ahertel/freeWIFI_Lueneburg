@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -40,6 +41,7 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 import org.osmdroid.util.GeoPoint;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -131,6 +133,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
         /*SQL Datenbank*/
+        /* test stuff
+        File file = new File("/data/data/de.teutronic.freewifi_lueneburg/databases/"+FreeWIFI_DBhelper.DATABASE_NAME);
+        if (file.delete()) {
+            Toast.makeText(this, "database deleted", Toast.LENGTH_LONG).show();
+        } */
+
         freeWIFI_DBhelper = new FreeWIFI_DBhelper (this);
 
         FreeWIFI_DBResolver resolver = new FreeWIFI_DBResolver(freeWIFI_DBhelper.getWritableDatabase());
@@ -140,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //  resolver.insertNewStuff(freeWIFI_DBobj);
         freeWIFIList = resolver.getFreeWIFIList();
         for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
-            Log.v("DB:", "ssid="+freeWIFI_DBobj2.getSsid()+" Lon="+freeWIFI_DBobj2.getLogitude()+" Lat="+freeWIFI_DBobj2.getLatitude()+" praise="+freeWIFI_DBobj2.getPraise());
+            Log.v("DB:", "ssid="+freeWIFI_DBobj2.getSsid()+" Lon="+freeWIFI_DBobj2.getLogitude()+" Lat="+freeWIFI_DBobj2.getLatitude()+" praise="+freeWIFI_DBobj2.getPraise()+" offline="+Boolean.toString(freeWIFI_DBobj2.getOffline()));
         }
 
 
@@ -160,10 +168,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //aus Datenbank-Liste OSM items erzeugen
         ArrayList<OverlayItem> fflgitems = new ArrayList<OverlayItem>();
         Drawable fflgMarker = this.getResources().getDrawable(R.drawable.freifunk);
+        Drawable fflgMarkerOff = this.getResources().getDrawable(R.drawable.freifunk_);
         for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
             GeoPoint apGeoPt = new GeoPoint(Float.parseFloat(freeWIFI_DBobj2.getLatitude()),Float.parseFloat(freeWIFI_DBobj2.getLogitude()));
-            OverlayItem olItem = new OverlayItem("Title", "Description", apGeoPt);
-            olItem.setMarker(fflgMarker);
+            OverlayItem olItem = new OverlayItem(freeWIFI_DBobj2.getPraise(), freeWIFI_DBobj2.getLink(), apGeoPt);
+            if (freeWIFI_DBobj2.getOffline()) {
+                olItem.setMarker(fflgMarkerOff);
+            } else {
+                olItem.setMarker(fflgMarker);
+            }
             fflgitems.add(olItem);
         }
         //the overlay
@@ -181,6 +194,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 });
         fflgOverlay.setFocusItemsOnTap(true);
         mapView.getOverlays().add(fflgOverlay);
+
+
+        // WLAN ?
+        if (Connectivity.isConnectedWifi(this)){
+            NetworkInfo info =Connectivity.getNetworkInfo(this);
+            String ssid =info.getExtraInfo();
+            if (ssid.indexOf("lueneburg.freifunk.net") != -1) {
+                Toast.makeText(this, "trying database update", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Override

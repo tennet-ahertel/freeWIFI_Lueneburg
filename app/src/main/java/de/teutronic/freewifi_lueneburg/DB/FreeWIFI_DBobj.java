@@ -3,7 +3,9 @@ package de.teutronic.freewifi_lueneburg.DB;
 
 import android.content.Context;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import de.teutronic.freewifi_lueneburg.R;
 
@@ -23,6 +25,7 @@ public class FreeWIFI_DBobj {
     public static final String GPS_LASTUPDATE ="lastupdate";
     public static final String GPS_PRAISE     ="praise";
     public static final String GPS_LINK       ="link";
+    public static final String GPS_OFFLINE    ="offline";
 
     public static final String SYSTEMCONFIG_TABLE_NAME ="System_Configuration";
 
@@ -32,6 +35,7 @@ public class FreeWIFI_DBobj {
     private Date lastupdate;
     private String praise;
     private String link;
+    private Boolean offline;
 
     public String getSsid() {
         return ssid;
@@ -46,7 +50,11 @@ public class FreeWIFI_DBobj {
         return praise;
     }
     public String getLink() {
+        if (link == null) return "";
         return link;
+    }
+    public Boolean getOffline() {
+        return offline;
     }
     public void setSsid(String ssid) {
         this.ssid = ssid;
@@ -63,6 +71,9 @@ public class FreeWIFI_DBobj {
     public void setLink(String link) {
         this.link = link;
     }
+    public void setOffline(Boolean offline) {
+        this.offline = offline;
+    }
 
     public Date getLastupdate() {
         return lastupdate;
@@ -74,9 +85,9 @@ public class FreeWIFI_DBobj {
         this.lastupdate = dateLU;
     }
 
-    public String[] createTable () {
+    public List<String> createTable () {
         StringBuilder stb = new StringBuilder();
-        String[] r =new String[50];
+        List<String> r =new ArrayList<>();
         int i=0;
         stb.append("CREATE TABLE '"+GPS_TABLE_NAME+"' (");
         stb.append("    "+GPS_RECORD_ID+ " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,");
@@ -85,36 +96,40 @@ public class FreeWIFI_DBobj {
         stb.append("    "+GPS_LONGITUDE+ " TEXT NOT NULL DEFAULT '',");
         stb.append("    "+GPS_LASTUPDATE+" DATETIME NOT NULL DEFAULT '946728000',");
         stb.append("    "+GPS_PRAISE+    " TEXT NOT NULL DEFAULT '',");
-        stb.append("    "+GPS_LINK+      " TEXT ");
+        stb.append("    "+GPS_LINK+      " TEXT ,");
+        stb.append("    "+GPS_OFFLINE+   " INTEGER NOT NULL DEFAULT 0");
         stb.append(")");
-        r[i++] = stb.toString();
+        r.add(stb.toString());
         stb = new StringBuilder();
-        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+",praise) VALUES ('53.247135','10.409009','leuphana');");
-        r[i++] = stb.toString();
+        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+","+GPS_PRAISE+") VALUES ('53.247135','10.409009','leuphana');");
+        r.add(stb.toString());
         stb = new StringBuilder();
-        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+",praise) VALUES ('53.247467','10.41233','Ev.Familien-Bildungsstätte');");
-        r[i++] = stb.toString();
+        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+","+GPS_PRAISE+") VALUES ('53.247467','10.41233','Ev.Familien-Bildungsstätte');");
+        r.add(stb.toString());
         stb = new StringBuilder();
-        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+",praise) VALUES ('53.25029' ,'10.3991' ,'Landkreis-Geb.5');");
-        r[i++] = stb.toString();
+        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+","+GPS_PRAISE+") VALUES ('53.25029' ,'10.3991' ,'Landkreis-Geb.5');");
+        r.add(stb.toString());
         stb = new StringBuilder();
-        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+",praise) VALUES ('53.30757' ,'10.28674','Gemeinde-Radbruch');");
-        r[i++] = stb.toString();
+        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+","+GPS_PRAISE+") VALUES ('53.30757' ,'10.28674','Gemeinde-Radbruch');");
+        r.add(stb.toString());
         stb = new StringBuilder();
-        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+",praise) VALUES ('53.1722'  ,'10.8164' ,'Gemeinde-Nahrendorf');");
-        r[i++] = stb.toString();
+        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+","+GPS_PRAISE+") VALUES ('53.1722'  ,'10.8164' ,'Gemeinde-Nahrendorf');");
+        r.add(stb.toString());
         stb = new StringBuilder();
-        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+",praise) VALUES ('53.22515' ,'10.53676','Gemeinde-Barendorf');");
-        r[i++] = stb.toString();
+        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+","+GPS_PRAISE+") VALUES ('53.22515' ,'10.53676','Gemeinde-Barendorf');");
+        r.add(stb.toString());
+        stb = new StringBuilder();
+        stb.append("INSERT INTO '"+GPS_TABLE_NAME+"' ("+GPS_LATITUDE+","+GPS_LONGITUDE+","+GPS_PRAISE+","+GPS_LINK+","+GPS_OFFLINE+") VALUES ('53.24245' ,'10.40674','Stadtlichter','www.stadtlichter.com',1);");
+        r.add(stb.toString());
         stb = new StringBuilder();
         stb.append("CREATE TABLE '"+SYSTEMCONFIG_TABLE_NAME+"' (");
         stb.append("    'Setting' VARCHAR(255)  UNIQUE NOT NULL,");
         stb.append("    'Value'   VARCHAR(255)  NOT NULL");
         stb.append(");");
-        r[i++] = stb.toString();
+        r.add(stb.toString());
         stb = new StringBuilder();
         stb.append("INSERT INTO '"+SYSTEMCONFIG_TABLE_NAME+"' VALUES ('DatabaseRevision','"+CURRENT_VERSION+"');");
-        r[i++] = stb.toString();
+        r.add(stb.toString());
 
         return r;
     }
