@@ -1,13 +1,9 @@
 package de.teutronic.freewifi_lueneburg.DB;
 
 
-import android.content.Context;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import de.teutronic.freewifi_lueneburg.R;
 
 
 /**
@@ -26,6 +22,7 @@ public class FreeWIFI_DBobj {
     public static final String GPS_PRAISE     ="praise";
     public static final String GPS_LINK       ="link";
     public static final String GPS_OFFLINE    ="offline";
+    public static final String GPS_MAPID      ="mapid";
 
     public static final String SYSTEMCONFIG_TABLE_NAME ="System_Configuration";
 
@@ -36,6 +33,7 @@ public class FreeWIFI_DBobj {
     private String praise;
     private String link;
     private Boolean offline;
+    private String mapid;
 
     public String getSsid() {
         return ssid;
@@ -56,6 +54,11 @@ public class FreeWIFI_DBobj {
     public Boolean getOffline() {
         return offline;
     }
+    public String getMapid() {
+        return mapid;
+    }
+
+
     public void setSsid(String ssid) {
         this.ssid = ssid;
     }
@@ -74,6 +77,9 @@ public class FreeWIFI_DBobj {
     public void setOffline(Boolean offline) {
         this.offline = offline;
     }
+    public void setMapid(String mapid) {
+        this.mapid = mapid;
+    }
 
     public Date getLastupdate() {
         return lastupdate;
@@ -91,6 +97,7 @@ public class FreeWIFI_DBobj {
         int i=0;
         stb.append("CREATE TABLE '"+GPS_TABLE_NAME+"' (");
         stb.append("    "+GPS_RECORD_ID+ " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,");
+        stb.append("    "+GPS_MAPID+     " TEXT ,");
         stb.append("    "+GPS_SSID_NAME+ " TEXT NOT NULL DEFAULT 'lueneburg.freifunk.net',");
         stb.append("    "+GPS_LATITUDE+  " TEXT NOT NULL DEFAULT '',");
         stb.append("    "+GPS_LONGITUDE+ " TEXT NOT NULL DEFAULT '',");

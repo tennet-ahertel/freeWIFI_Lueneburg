@@ -1,17 +1,12 @@
 package de.teutronic.freewifi_lueneburg.DB;
 
 import android.content.ContentValues;
-import android.database.ContentObservable;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import java.sql.Date;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-
-import de.teutronic.freewifi_lueneburg.R;
 
 /**
  * Created by Andreas Hertel on 08.03.2018.
@@ -63,6 +58,28 @@ public class FreeWIFI_DBResolver {
     }
     private Cursor getCursorSQL (String sqlStatement) {
         return freeWIFI_DB.rawQuery(sqlStatement, null);
+    }
+
+    public boolean checkAndInsertNewNode (FreeWIFI_DBobj freeWIFI_dBobj) {
+        ContentValues contentValues= new ContentValues();
+        try {
+            contentValues.put(FreeWIFI_DBobj.GPS_PRAISE, freeWIFI_dBobj.getPraise());
+            contentValues.put(FreeWIFI_DBobj.GPS_LONGITUDE, freeWIFI_dBobj.getLogitude());
+            contentValues.put(FreeWIFI_DBobj.GPS_LATITUDE, freeWIFI_dBobj.getLatitude());
+            contentValues.put(FreeWIFI_DBobj.GPS_OFFLINE, freeWIFI_dBobj.getOffline());
+            contentValues.put(FreeWIFI_DBobj.GPS_MAPID, freeWIFI_dBobj.getMapid());
+            if (freeWIFI_DB.update(FreeWIFI_DBobj.GPS_TABLE_NAME,contentValues,FreeWIFI_DBobj.GPS_MAPID+" = '"+freeWIFI_dBobj.getMapid()+"'", null) == 1) {
+                Log.d("freeWIFI", "updated !");
+            } else
+            if (freeWIFI_DB.insert(FreeWIFI_DBobj.GPS_TABLE_NAME," ", contentValues) >0) {
+                return true;
+            }
+
+        } catch (Exception ex) {
+            Log.e("freeWIFI", ex.getLocalizedMessage());
+        }
+
+        return false;
     }
 
 }

@@ -1,9 +1,15 @@
 package de.teutronic.freewifi_lueneburg;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -15,42 +21,45 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-
-import android.content.ContentValues;
-import android.content.Context;
-
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestHandle;
+import com.loopj.android.http.RequestParams;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.ItemizedIconOverlay;
 import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
 import org.osmdroid.views.overlay.OverlayItem;
-import org.osmdroid.views.overlay.PathOverlay;
 import org.osmdroid.views.overlay.Polyline;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
-import org.osmdroid.util.GeoPoint;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import de.teutronic.freewifi_lueneburg.DB.FreeWIFI_DBResolver;
 import de.teutronic.freewifi_lueneburg.DB.FreeWIFI_DBhelper;
 import de.teutronic.freewifi_lueneburg.DB.FreeWIFI_DBobj;
+import de.teutronic.freewifi_lueneburg.DB.FreeWIFI_DBsync;
 
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity  extends AppCompatActivity implements SensorEventListener  {
     private MapView mapView;
     private MyLocationNewOverlay myLocationOverlay;
     private SensorManager sensorManager;
@@ -74,7 +83,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private boolean showway = false;
     private List<FreeWIFI_DBobj> freeWIFIList;
     private ItemizedOverlayWithFocus<OverlayItem> fflgOverlay;
+    private FreeWIFI_DBsync freeWIFI_DBsync = new FreeWIFI_DBsync();
 
+    // Progress Dialog Object
+    ProgressDialog prgDialog;
+    HashMap<String, String> queryValues;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,20 +150,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         File file = new File("/data/data/de.teutronic.freewifi_lueneburg/databases/"+FreeWIFI_DBhelper.DATABASE_NAME);
         if (file.delete()) {
             Toast.makeText(this, "database deleted", Toast.LENGTH_LONG).show();
-        } */
+        }*/
 
         freeWIFI_DBhelper = new FreeWIFI_DBhelper (this);
 
         FreeWIFI_DBResolver resolver = new FreeWIFI_DBResolver(freeWIFI_DBhelper.getWritableDatabase());
         FreeWIFI_DBobj freeWIFI_DBobj = new FreeWIFI_DBobj();
-        freeWIFI_DBobj.setSsid("First");
+
+        // WLAN ?
+        if (Connectivity.isConnectedWifi(this)){
+            NetworkInfo info =Connectivity.getNetworkInfo(this);
+            String ssid =info.getExtraInfo();
+            if (ssid.indexOf("lueneburg.freifunk.net") != -1) {
+                Toast.makeText(this, "trying database update", Toast.LENGTH_LONG).show();
+            }
+        }
+        freeWIFI_DBsync.init(this);
+
+
+        //freeWIFI_DBobj.setSsid("First");
         //  freeWIFI_DBobj.setCreationDate("02.03.2018");
         //  resolver.insertNewStuff(freeWIFI_DBobj);
         freeWIFIList = resolver.getFreeWIFIList();
         for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
             Log.v("DB:", "ssid="+freeWIFI_DBobj2.getSsid()+" Lon="+freeWIFI_DBobj2.getLogitude()+" Lat="+freeWIFI_DBobj2.getLatitude()+" praise="+freeWIFI_DBobj2.getPraise()+" offline="+Boolean.toString(freeWIFI_DBobj2.getOffline()));
         }
-
 
 
         /*OSM*/
@@ -196,14 +220,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mapView.getOverlays().add(fflgOverlay);
 
 
-        // WLAN ?
-        if (Connectivity.isConnectedWifi(this)){
-            NetworkInfo info =Connectivity.getNetworkInfo(this);
-            String ssid =info.getExtraInfo();
-            if (ssid.indexOf("lueneburg.freifunk.net") != -1) {
-                Toast.makeText(this, "trying database update", Toast.LENGTH_LONG).show();
-            }
-        }
+
     }
 
     @Override
@@ -332,7 +349,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
             GeoPoint apGeoPt = new GeoPoint(Float.parseFloat(freeWIFI_DBobj2.getLatitude()),Float.parseFloat(freeWIFI_DBobj2.getLogitude()));
             distact = (float) actGeoPt.distanceTo(apGeoPt);
-            if (distact <distlow) {
+            if ((distact <distlow) && (!freeWIFI_DBobj2.getOffline())){
                 distlow=distact;
                 nextAPGeoPt = apGeoPt;
             }
@@ -341,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
             GeoPoint apGeoPt = new GeoPoint(Float.parseFloat(freeWIFI_DBobj2.getLatitude()),Float.parseFloat(freeWIFI_DBobj2.getLogitude()));
             distact = (float) actGeoPt.distanceTo(apGeoPt);
-            if ((distact >distlow) &&  (distact <distlow2)){
+            if ((distact >distlow) &&  (distact <distlow2) && (!freeWIFI_DBobj2.getOffline())){
                 distlow2=distact;
                 nextAPGeoPt2 = apGeoPt;
             }
@@ -350,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         for (FreeWIFI_DBobj freeWIFI_DBobj2 : freeWIFIList) {
             GeoPoint apGeoPt = new GeoPoint(Float.parseFloat(freeWIFI_DBobj2.getLatitude()),Float.parseFloat(freeWIFI_DBobj2.getLogitude()));
             distact = (float) actGeoPt.distanceTo(apGeoPt);
-            if ((distact >distlow2) &&  (distact <distlow3)){
+            if ((distact >distlow2) &&  (distact <distlow3) && (!freeWIFI_DBobj2.getOffline())){
                 distlow3=distact;
                 nextAPGeoPt3 = apGeoPt;
             }
@@ -409,4 +426,5 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mapView.getOverlays().add(myLocationOverlay);
         mapView.getOverlays().add(fflgOverlay);
     }
+
 }
