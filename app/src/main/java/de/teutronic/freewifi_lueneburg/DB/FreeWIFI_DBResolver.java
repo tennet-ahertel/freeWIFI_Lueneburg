@@ -63,18 +63,25 @@ public class FreeWIFI_DBResolver {
     public boolean checkAndInsertNewNode (FreeWIFI_DBobj freeWIFI_dBobj) {
         ContentValues contentValues= new ContentValues();
         try {
-            contentValues.put(FreeWIFI_DBobj.GPS_PRAISE, freeWIFI_dBobj.getPraise());
+            contentValues.put(FreeWIFI_DBobj.GPS_NODE_NAME, freeWIFI_dBobj.getName());
             contentValues.put(FreeWIFI_DBobj.GPS_LONGITUDE, freeWIFI_dBobj.getLogitude());
             contentValues.put(FreeWIFI_DBobj.GPS_LATITUDE, freeWIFI_dBobj.getLatitude());
             contentValues.put(FreeWIFI_DBobj.GPS_OFFLINE, freeWIFI_dBobj.getOffline());
             contentValues.put(FreeWIFI_DBobj.GPS_MAPID, freeWIFI_dBobj.getMapid());
             if (freeWIFI_DB.update(FreeWIFI_DBobj.GPS_TABLE_NAME,contentValues,FreeWIFI_DBobj.GPS_MAPID+" = '"+freeWIFI_dBobj.getMapid()+"'", null) == 1) {
-                Log.d("freeWIFI", "updated !");
-            } else
-            if (freeWIFI_DB.insert(FreeWIFI_DBobj.GPS_TABLE_NAME," ", contentValues) >0) {
-                return true;
+                Log.v("freeWIFI", freeWIFI_dBobj.getName()+" updated !");
+            } else {
+                //neuer Eintrag
+                String praise = "";
+                String name = freeWIFI_dBobj.getName();
+                if ((name.indexOf("ff") == -1) && (name.indexOf("FF") == -1) && (name.indexOf("freifunk") == -1)) {
+                    praise = name;
+                }
+                contentValues.put(FreeWIFI_DBobj.GPS_PRAISE, praise);
+                if (freeWIFI_DB.insert(FreeWIFI_DBobj.GPS_TABLE_NAME, " ", contentValues) > 0) {
+                    return true;
+                }
             }
-
         } catch (Exception ex) {
             Log.e("freeWIFI", ex.getLocalizedMessage());
         }
